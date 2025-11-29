@@ -16,10 +16,10 @@ Brief overview of what you implemented and your overall approach.
 
 List what you successfully implemented:
 
-- [ ] `ingest_data()` - basic functionality
-- [ ] `ingest_data()` - deduplication
-- [ ] `ingest_data()` - sorting
-- [ ] `ingest_data()` - validation
+- [x] `ingest_data()` - basic functionality
+- [x] `ingest_data()` - deduplication
+- [x] `ingest_data()` - sorting
+- [x] `ingest_data()` - validation
 - [ ] `detect_anomalies()` - zscore method
 - [ ] `detect_anomalies()` - additional methods (iqr/rolling)
 - [ ] `summarize_metrics()` - basic statistics
@@ -34,12 +34,18 @@ List what you successfully implemented:
 Document key assumptions and why you made certain design choices.
 
 ### Data Ingestion
-- **Assumption 1:** [e.g., "Assumed that duplicates should be identified by identical timestamp + sensor + value"]
-  - **Rationale:** [Why you made this choice]
-  - **Alternative considered:** [What else you thought about]
+- **Assumption 1:** I assumed that when validate argument is set to False, returns the dataframe without any sorting, deduplication, or type conversion
+  - **Rationale:** the docstring specifies "If True, perform data validation". I interpreted this to mean that `False` should preserve the original state of the data, including potential errors and out-of-order timestamps.
+  - **Alternative considered:** minimal structural cleanup like sorting by timestamp even when validation is skipped. I rejected this to ensure that when validate is set to False, it provides a true raw"view of the data.
 
-- **Assumption 2:** [e.g., "Chose to keep 'BAD' quality readings but flag them"]
-  - **Rationale:** [Why]
+- **Assumption 2:** I assumed `errors='coerce'` for the value validation.
+  - **Rationale:** I imagine errors while sensor reading as "unknown" value.
+
+- **Assumption 3:** I assume timestamp and sensor pairs.
+  - **Rationale:** I imagine that a single sensor cannot produce two distinct readings at the exact same millisecond.
+
+- **Assumption 4:** I filtered the quality when is set to "BAD"
+  - **Rationale:** Because "BAD" data is explicitly flagged by the hardware as unreliable.
 
 ### Anomaly Detection
 - **Method choice:** [Why you implemented certain methods]

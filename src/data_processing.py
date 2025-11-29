@@ -63,10 +63,48 @@ def ingest_data(
     - Consider filtering by quality flags
     - Document your data cleaning strategy in NOTES.md
     """
-    # TODO: Implement this function
-    raise NotImplementedError(
-        "ingest_data() must be implemented by the candidate"
-    )
+    
+    # data branches empty
+    if not data_batches:
+        raise ValueError("data_batches list is empty")
+    
+    # data branches contain invalid data structures
+    for b in data_batches:
+        if not isinstance(b, pd.DataFrame):
+            raise ValueError("Each item in data_batches must be a pandas DataFrame")
+        required_columns = {"timestamp", "sensor", "value", "unit", "quality"}
+        if not required_columns.issubset(b.columns):
+            raise ValueError(f"DataFrame missing required columns: {required_columns}")
+
+    consolidated_df = pd.concat(data_batches, ignore_index=True)
+
+    # data validation and cleanup
+    if validate:
+        # out-of-order timestamps
+        consolidated_df["timestamp"] = pd.to_datetime(consolidated_df["timestamp"])
+        data_batches_cleaned = []
+        for batch in data_batches:
+            # print("\n---- batch", batch)
+            # missing or null values
+            batch = batch.dropna(subset=["timestamp", "sensor"])
+            # fill missing values with NaN
+            batch["value"] = batch["value"].astype(float)
+            # filter bad quality data
+            batch = batch[batch["quality"] != "BAD"]
+            
+            # remove duplicates
+            batch = batch.drop_duplicates(subset=["timestamp", "sensor"])
+
+            batch = batch.sort_values(by="timestamp")
+            data_batches_cleaned.append(batch)
+
+        consolidated_df = pd.concat(data_batches_cleaned, ignore_index=True)
+        # different sensors with different units
+        consolidated_df["value"] = pd.to_numeric(consolidated_df["value"], errors='coerce') 
+        consolidated_df = consolidated_df.dropna(subset=["value"])
+        consolidated_df = consolidated_df.sort_values(by="timestamp").reset_index(drop=True)
+
+    return consolidated_df
 
 
 def detect_anomalies(
