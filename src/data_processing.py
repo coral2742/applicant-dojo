@@ -154,10 +154,54 @@ def detect_anomalies(
     - Think about edge cases: what if all data is anomalous? None is?
     - Document your approach and limitations in NOTES.md
     """
-    # TODO: Implement this function
-    raise NotImplementedError(
-        "detect_anomalies() must be implemented by the candidate"
-    )
+    
+
+    methods_supported = {"zscore", "iqr", "rolling"}
+    # method not supported
+    if method not in methods_supported:
+        raise ValueError(f"Method '{method}' not supported. Choose from {methods_supported}")
+    # sensor_name not found
+    if sensor_name not in data['sensor'].unique():
+        raise ValueError(f"Sensor '{sensor_name}' not found in data")
+    
+
+
+    final_df = data.copy()
+
+    # new columns
+    final_df["is_anomaly"] = False
+    final_df["anomaly_score"] = 0.0
+    final_df["detection_method"] = method
+
+    # zscore
+    if method == "zscore":
+        # not enough data for the method
+        sensor_data = data[data["sensor"] == sensor_name].copy()
+        values = sensor_data["value"].dropna()
+        std = values.std()
+        if len(values) < 2 or pd.isna(std) or std == 0:
+            raise ValueError("Insufficient data for zscore method")
+        
+        mean = values.mean()
+        z_scores = (values - mean) / std
+
+        final_df["anomaly_score"] = z_scores
+        if (abs(z_scores) > threshold).any():
+            final_df["is_anomaly"] = True
+        final_df["is_anomaly"] = final_df["is_anomaly"].fillna(False)
+
+    # TODO iqr method
+    elif method == "iqr":
+        raise NotImplementedError("IQr method not implemented yet")
+
+
+    # TODO rolling method
+    elif method == "rolling":
+        raise NotImplementedError("Rolling method not implemented yet")    
+
+    return final_df
+
+
 
 
 def summarize_metrics(

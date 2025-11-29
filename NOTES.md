@@ -20,7 +20,7 @@ List what you successfully implemented:
 - [x] `ingest_data()` - deduplication
 - [x] `ingest_data()` - sorting
 - [x] `ingest_data()` - validation
-- [ ] `detect_anomalies()` - zscore method
+- [x] `detect_anomalies()` - zscore method
 - [ ] `detect_anomalies()` - additional methods (iqr/rolling)
 - [ ] `summarize_metrics()` - basic statistics
 - [ ] `summarize_metrics()` - quality metrics
@@ -48,9 +48,13 @@ Document key assumptions and why you made certain design choices.
   - **Rationale:** Because "BAD" data is explicitly flagged by the hardware as unreliable.
 
 ### Anomaly Detection
-- **Method choice:** [Why you implemented certain methods]
-- **Threshold handling:** [How you handle edge cases with thresholds]
-- **Missing data:** [How you handle NaN values in anomaly detection]
+- **Method choice:** I implemented this code in z-score to prevent mathematical errors
+    ```python
+    if len(values) < 2 or pd.isna(std) or std == 0:
+      raise ValueError("Insufficient data for zscore method")
+    ```
+- **Threshold handling:** I flagged data where the z_scores is greater than the threshold, and I used the absolute value to ensure that both positive and negative anomalies are considered.
+- **Missing data:** NaN values are dropped strictly for the calculation of Mean and Std Dev to prevent error propagation.
 
 ### Metrics Summarization
 - **Metric selection:** [Which metrics you chose and why]
@@ -86,10 +90,15 @@ If you had more time, what would you improve or add?
 - **Why:** [Impact/value]
 - **Estimated effort:** [Time estimate]
 
-### Priority 2: [Second priority]
-- **What:**
-- **Why:**
-- **Estimated effort:**
+### Priority 2: Implement "rolling" method
+- **What:** Add rolling statistics to `detect_anomalies`.
+- **Why:** To detect anomalies in time-series data where the mean changes over time.
+- **Estimated effort:** 15 min.
+
+### Priority 3: Implement "iqr" method
+- **What:** Add iqr statistics to `detect_anomalies`.
+- **Why:** Because IQR is more robust than Z-score as it relies on medians rather than means, making it less sensitive to extreme outliers.
+- **Estimated effort:** 15 min.
 
 ### Additional Features
 - [Feature idea 1]
