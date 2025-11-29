@@ -1,8 +1,8 @@
 # Implementation Notes
 
-**Candidate Name:** [Your Name Here]  
-**Date:** [Submission Date]  
-**Time Spent:** [Approximate hours]
+**Candidate Name:** Coral Izquierdo Muñiz
+**Date:** 29th November 2025
+**Time Spent:** < 2 hours
 
 ---
 
