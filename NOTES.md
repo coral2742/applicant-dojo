@@ -22,9 +22,9 @@ List what you successfully implemented:
 - [x] `ingest_data()` - validation
 - [x] `detect_anomalies()` - zscore method
 - [ ] `detect_anomalies()` - additional methods (iqr/rolling)
-- [ ] `summarize_metrics()` - basic statistics
-- [ ] `summarize_metrics()` - quality metrics
-- [ ] `summarize_metrics()` - time windowing
+- [x] `summarize_metrics()` - basic statistics
+- [x] `summarize_metrics()` - quality metrics
+- [x] `summarize_metrics()` - time windowing
 - [ ] Additional tests beyond exposed tests
 
 ---
@@ -57,8 +57,13 @@ Document key assumptions and why you made certain design choices.
 - **Missing data:** NaN values are dropped strictly for the calculation of Mean and Std Dev to prevent error propagation.
 
 ### Metrics Summarization
-- **Metric selection:** [Which metrics you chose and why]
-- **Aggregation strategy:** [How you aggregate data]
+- **Metric selection:**
+  - **Statistical Metrics** (mean, std, min, max): for process control and physical analysis
+  - **Operational Metrics** (null_count, good_quality_pct, anomaly_rate): to monitor the health of the sensor system itself
+- **Aggregation strategy:**
+  - Used `pd.Grouper(key="timestamp", freq=time_window)` for time-based aggregation. This ensuring correct time alignment like grouping 10:15 into the 10:00 bucket. Also, i checked if the data dtype is of the datetime64 dtype
+
+
 
 ---
 
@@ -76,8 +81,9 @@ Be honest about what doesn't work perfectly or edge cases you didn't handle.
    - **Workaround:**
 
 ### Performance Considerations
-- **Large datasets:** [How your code scales, any concerns]
+- **Large datasets:** If is a larger dataset, we could implement parallel processing different CPU cores, significantly reducing total execution time.
 - **Memory usage:** [Any memory-intensive operations]
+
 
 ---
 
@@ -85,20 +91,20 @@ Be honest about what doesn't work perfectly or edge cases you didn't handle.
 
 If you had more time, what would you improve or add?
 
-### Priority 1: [Highest priority improvement]
-- **What:** [Description]
-- **Why:** [Impact/value]
-- **Estimated effort:** [Time estimate]
+### Priority 1: Improve performance
+- **What:** Implement parallel processing to reduce the execution time
+- **Why:** If we have a larger dataset, with the actual functions, will be slowly, so we could process it in different CPU cores, significantly reducing total execution time.
+- **Estimated effort:** 1 hour
 
 ### Priority 2: Implement "rolling" method
 - **What:** Add rolling statistics to `detect_anomalies`.
 - **Why:** To detect anomalies in time-series data where the mean changes over time.
-- **Estimated effort:** 15 min.
+- **Estimated effort:** 15 min
 
 ### Priority 3: Implement "iqr" method
 - **What:** Add iqr statistics to `detect_anomalies`.
 - **Why:** Because IQR is more robust than Z-score as it relies on medians rather than means, making it less sensitive to extreme outliers.
-- **Estimated effort:** 15 min.
+- **Estimated effort:** 15 min
 
 ### Additional Features
 - [Feature idea 1]
@@ -136,10 +142,10 @@ What did you find most interesting or challenging about this exercise?
 
 Document your setup for reproducibility.
 
-- **Python version:** [e.g., 3.11.5]
-- **OS:** [e.g., Windows 11, Ubuntu 22.04, macOS]
-- **Editor/IDE:** [e.g., VS Code, PyCharm]
-- **Additional tools:** [e.g., "Used black for formatting", "Ran mypy for type checking"]
+- **Python version:** 3.10.18
+- **OS:** Windows 11
+- **Editor/IDE:** VS Code
+- **Additional tools:** Use of Gemini as an AI tool
 
 ---
 

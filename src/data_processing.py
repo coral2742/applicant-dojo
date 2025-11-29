@@ -263,7 +263,60 @@ def summarize_metrics(
     - Ensure robust handling of edge cases (all nulls, single value, etc.)
     - Document your metric choices in NOTES.md
     """
-    # TODO: Implement this function
-    raise NotImplementedError(
-        "summarize_metrics() must be implemented by the candidate"
-    )
+    
+    if data.empty:
+        raise ValueError("Input data is empty")
+    if group_by and group_by not in data.columns:
+        raise ValueError(f"Column '{group_by}' not found in data")
+    
+    if time_window:
+        # set timestamp as index
+        if 'timestamp' not in data.columns:
+            raise ValueError("Column 'timestamp' not found in data for time-based aggregation")
+        
+        #check timestamp dtype
+        if not pd.api.types.is_datetime64_any_dtype(data["timestamp"]):
+            data = data.copy()
+            data["timestamp"] = pd.to_datetime(data["timestamp"])
+
+        all_data = data.groupby([group_by, pd.Grouper(key="timestamp", freq=time_window)])
+    else:
+        all_data = data.groupby(group_by)
+
+    results = {}
+    for group_name, group_df in all_data:
+        metrics = {}
+        values = group_df["value"].dropna()
+
+        metrics = {
+            "mean": values.mean(),
+            "std": values.std(),
+            "min": values.min(),
+            "max": values.max(),
+            "count": len(values),
+            "null_count": group_df["value"].isna().sum()
+        }
+        # quality metrics
+        if "quality" in group_df.columns:
+            good_count = (group_df["quality"] == "GOOD").sum()
+            metrics["good_quality_pct"] = (good_count / len(group_df)) * 100.0 if len(group_df) > 0 else 0.0
+        else:
+            metrics["good_quality_pct"] = 0.0
+
+        # anomaly metrics
+        if "is_anomaly" in group_df.columns:
+            anomaly_count = group_df["is_anomaly"].sum()
+            metrics["anomaly_rate"] = (anomaly_count / len(group_df)) if len(group_df) > 0 else 0.0
+    
+        if time_window:
+            sensor = group_name[0]
+            time_bucket = group_name[1]
+            if sensor not in results:
+                results[sensor] = {}
+            
+            results[sensor][str(time_bucket)] = metrics
+            
+        else:
+            results[group_name] = metrics
+    
+    return results
